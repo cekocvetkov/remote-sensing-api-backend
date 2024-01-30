@@ -1,0 +1,8 @@
+AnnualCrop
+Forest
+HerbaceousVegetation
+Highway
+Industrial
+Residential
+River
+SeaLake
