@@ -8,6 +8,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.MessageBodyWriter;
 import jakarta.ws.rs.ext.Provider;
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -32,6 +33,9 @@ public class GeoTiffResource {
     Yolov8EuroSat yolov8EuroSat;
     @Inject
     ObjectDetection yolovObjectDetection;
+    @Inject
+    TreeDetection treeDetection;
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -63,7 +67,7 @@ public class GeoTiffResource {
 
     public Response objectDetection(SentinelRequest sentinelRequest) {
         String boundingBox = getBoundingBoxString(sentinelRequest.getExtent());
-        LOG.info("Object Detection for geotiff from the request " + sentinelRequest);
+        LOG.info("Object Detection for image from the request " + sentinelRequest);
 
         InputStream inputStream = sentinelProcessApiClient.getGeoTiff(sentinelRequest.getExtent(), sentinelRequest.getDateFrom() + "T00:00:00Z", sentinelRequest.getDateTo() + "T00:00:00Z", sentinelRequest.getCloudCoverage());
         Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(inputStream));
@@ -71,6 +75,21 @@ public class GeoTiffResource {
 
         return Response.ok(image).build();
     }
+
+    @POST
+    @Path("/td")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({"image/png", "image/jpg"})
+    public Response treeDetection(@MultipartForm MultipartBody data) {
+        LOG.info("Tree Detection for image from the request " + data.fileName);
+        System.out.println(data.file);
+
+        Mat res = treeDetection.detectObjectOnImage(readImageFromInputStream(data.file));
+        BufferedImage image = mat2BufferedImage(res);
+
+        return Response.ok(image).build();
+    }
+
     private Mat readImageFromInputStream(InputStream inputStream) {
         byte[] imageBytes = new byte[0];
         try {
@@ -89,7 +108,7 @@ public class GeoTiffResource {
     public BufferedImage mat2BufferedImage(Mat mat) {
         //Encoding the image
         MatOfByte matOfByte = new MatOfByte();
-        Imgcodecs.imencode(".jpg", mat, matOfByte);
+        Imgcodecs.imencode(".png", mat, matOfByte);
         //Storing the encoded Mat in a byte array
         byte[] byteArray = matOfByte.toArray();
         //Preparing the Buffered Image

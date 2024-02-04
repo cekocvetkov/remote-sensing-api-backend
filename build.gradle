@@ -14,7 +14,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-resteasy-jackson'
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-resteasy'
-
+    implementation 'io.quarkus:quarkus-resteasy-multipart'
     implementation 'org.json:json:20171018'
 
     testImplementation 'io.quarkus:quarkus-junit5'
