@@ -28,6 +28,17 @@ public class ObjectDetection
     private static final int IMG_SIZE=800;
 
     public Mat detectObjectOnImage(Mat geoTiffImage){
+        // Convert to 3 channels (RGB) if it has an alpha channel
+        if (geoTiffImage.channels() == 4) {
+            List<Mat> channels = new ArrayList<>();
+            Core.split(geoTiffImage, channels);
+
+            // Keep only the first 3 channels (BGR)
+            Mat bgrImage = new Mat();
+            Core.merge(channels.subList(0, 3), bgrImage);
+
+            geoTiffImage = bgrImage;
+        }
 //        Mat inputBlob = preProcessImageForYolov8ObjectDetectionDior(geoTiffImage);
         Mat resizedImage = new Mat();
         Imgproc.resize(geoTiffImage, resizedImage, new Size(IMG_SIZE, IMG_SIZE), Imgproc.INTER_AREA);
@@ -110,7 +121,7 @@ public class ObjectDetection
         Dnn.NMSBoxes( mOfRect, mScores, 0.25f, 0.45f, boxesResult);
         System.out.println(classIds);
         drawBoxesOnTheImage( resizedImage, boxesResult , boxes, getClasses(), classIds, getRandomColorsPerClass());
-        Imgcodecs.imwrite(PathUtils.getPathForImageInResources( "1.tif" ), resizedImage);
+//        Imgcodecs.imwrite(PathUtils.getPathForImageInResources( "1.jpg" ), resizedImage);
 //        HighGui.imshow("Test", img );
 //        HighGui.waitKey(10000);
         //        result_boxes = cv2.dnn.NMSBoxes(boxes, scores, 0.25, 0.45, 0.5)

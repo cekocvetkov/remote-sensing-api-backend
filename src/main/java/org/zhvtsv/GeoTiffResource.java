@@ -16,10 +16,7 @@ import org.zhvtsv.service.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -64,7 +61,6 @@ public class GeoTiffResource {
     @Path("/od")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({"image/png", "image/jpg"})
-
     public Response objectDetection(SentinelRequest sentinelRequest) {
         String boundingBox = getBoundingBoxString(sentinelRequest.getExtent());
         LOG.info("Object Detection for image from the request " + sentinelRequest);
@@ -85,6 +81,18 @@ public class GeoTiffResource {
         System.out.println(data.file);
 
         Mat res = treeDetection.detectObjectOnImage(readImageFromInputStream(data.file));
+        BufferedImage image = mat2BufferedImage(res);
+
+        return Response.ok(image).build();
+    }
+
+    @POST
+    @Path("/od/bing")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({"image/png", "image/jpg"})
+    public Response objectDetection(@MultipartForm MultipartBody data) {
+        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(data.file));
+
         BufferedImage image = mat2BufferedImage(res);
 
         return Response.ok(image).build();
