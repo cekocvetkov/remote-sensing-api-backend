@@ -4,6 +4,15 @@ plugins {
 }
 
 repositories {
+    maven {
+        url "https://maven.geo-solutions.it/"
+    }
+    maven {
+        url "https://repo.osgeo.org/repository/release/"
+    }
+    maven {
+        url "https://maven.geotoolkit.org"
+    }
     mavenCentral()
     mavenLocal()
 }
@@ -16,6 +25,16 @@ dependencies {
     implementation 'io.quarkus:quarkus-resteasy'
     implementation 'io.quarkus:quarkus-resteasy-multipart'
     implementation 'org.json:json:20171018'
+
+    implementation 'org.geotools:gt-geotiff:30.0'
+    implementation 'org.geotools:gt-referencing:30.0'
+    implementation 'org.geotools:gt-epsg-hsql:30.0'
+    implementation 'org.geotools:gt-epsg-extension:30.0'
+    implementation 'org.geotools:gt-xml:30.0'
+    implementation 'org.geotools:gt-geojson:30.0'
+
+    implementation 'org.gdal:gdal:3.8.0'
+    implementation 'it.geosolutions.imageio-ext:imageio-ext-cog-rangereader-http:1.4.7'
 
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'

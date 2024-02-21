@@ -120,7 +120,7 @@ public class TreeDetection
         Dnn.NMSBoxes( mOfRect, mScores, 0.25f, 0.45f, boxesResult);
         System.out.println(classIds);
         drawBoxesOnTheImage( resizedImage, boxesResult , boxes, getClasses(), classIds, getRandomColorsPerClass());
-        Imgcodecs.imwrite(PathUtils.getPathForImageInResources( "1.tif" ), resizedImage);
+//        Imgcodecs.imwrite(PathUtils.getPathForImageInResources( "1.tif" ), resizedImage);
 //        HighGui.imshow("Test", img );
 //        HighGui.waitKey(10000);
         //        result_boxes = cv2.dnn.NMSBoxes(boxes, scores, 0.25, 0.45, 0.5)

@@ -35,14 +35,16 @@ public class GeoTiffResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces({"image/png", "image/jpg", "image/tiff"})
+//    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getGeoTiffSentinel(SentinelRequest sentinelRequest) {
         String boundingBox = getBoundingBoxString(sentinelRequest.getExtent());
         LOG.info("Request for GeoTiffs " + sentinelRequest);
 
         InputStream inputStream = sentinelProcessApiClient.getGeoTiff(sentinelRequest.getExtent(), sentinelRequest.getDateFrom() + "T00:00:00Z", sentinelRequest.getDateTo() + "T00:00:00Z", sentinelRequest.getCloudCoverage());
-
-        return Response.ok(inputStream).header("Content-Type", "image/tiff").build();
+        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(inputStream));
+        BufferedImage image = mat2BufferedImage(res);
+        return Response.ok(image).build();
     }
     @POST
     @Path("/classify")
