@@ -12,11 +12,14 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.zhvtsv.service.Yolov8EuroSat;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @ApplicationScoped
 public class GeoTiffService {
@@ -52,13 +55,13 @@ public class GeoTiffService {
             LOG.info("GeoTiff cropped");
 
             byte [] imageByteArray = coverageToBinary(cropped);
+            Mat image = convertToMat(cropped, imageByteArray);
+
             reader.dispose();
 
             // Get BufferedImage directly from GridCoverage2D
 
             // Convert BufferedImage to Mat (assuming BGR channels)
-            Mat image = Imgcodecs.imdecode(new MatOfByte(imageByteArray), Imgcodecs.IMREAD_COLOR); // Specify flags as needed
-
 
             return image;
         } catch (IOException e) {
