@@ -14,6 +14,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.zhvtsv.models.ExtentRequest;
 import org.zhvtsv.service.ObjectDetection;
 import org.zhvtsv.service.TreeDetection;
+import org.zhvtsv.service.TreeDetectionDeepforest;
 import org.zhvtsv.service.stac.GeoTiffService;
 import org.zhvtsv.service.stac.STACClient;
 import org.zhvtsv.service.stac.dto.STACItemPreview;
@@ -37,6 +38,8 @@ public class RemoteSensingResource {
     ObjectDetection yolovObjectDetection;
     @Inject
     TreeDetection treeDetection;
+    @Inject
+    TreeDetectionDeepforest treeDetectionDeepforest;
     @POST
     @Path("/items")
     @Produces(MediaType.APPLICATION_JSON)
@@ -62,7 +65,7 @@ public class RemoteSensingResource {
     @POST
     @Path("/tree-detection")
     @Produces({"image/png", "image/jpg", "image/tiff"})
-    public Response treeDetection(ExtentRequest extentRequest) {
+    public Response treeDetectionYolo(ExtentRequest extentRequest) {
         LOG.info("Load GeoTiff for item with id "+ extentRequest.getId() + " and extent "+Arrays.toString(extentRequest.getExtent()));
         STACItemPreview stacItemPreview = this.stacClient.getStacItemById(extentRequest.getId());
         Mat image = this.geoTiffService.downloadStacItemGeoTiffRGB(stacItemPreview.getDownloadUrl(), extentRequest.getExtent());
@@ -70,7 +73,16 @@ public class RemoteSensingResource {
         BufferedImage response = mat2BufferedImage(res);
         return Response.ok(response).build();
     }
+    @POST
+    @Path("/tree-detection/deepforest")
+    @Produces({"image/png", "image/jpg", "image/tiff"})
+    public Response treeDetectionDeepforest(ExtentRequest extentRequest) {
+        LOG.info("Load GeoTiff for item with id "+ extentRequest.getId() + " and extent "+Arrays.toString(extentRequest.getExtent()));
+        STACItemPreview stacItemPreview = this.stacClient.getStacItemById(extentRequest.getId());
+        byte[] image = this.geoTiffService.downloadStacItemGeoTiffRGBBytes(stacItemPreview.getDownloadUrl(), extentRequest.getExtent());
 
+        return Response.ok(treeDetectionDeepforest.detectObjectOnImage(image)).build();
+    }
     private static String getBoundingBoxString(double[] extent) {
         String array = Arrays.toString(extent);
         return array.substring(1, array.length() - 2).replaceAll("\\s+", "");
