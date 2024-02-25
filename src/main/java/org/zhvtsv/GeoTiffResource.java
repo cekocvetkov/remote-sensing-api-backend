@@ -42,7 +42,7 @@ public class GeoTiffResource {
         LOG.info("Request for GeoTiffs " + sentinelRequest);
 
         InputStream inputStream = sentinelProcessApiClient.getGeoTiff(sentinelRequest.getExtent(), sentinelRequest.getDateFrom() + "T00:00:00Z", sentinelRequest.getDateTo() + "T00:00:00Z", sentinelRequest.getCloudCoverage());
-        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(inputStream));
+        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(inputStream), "");
         BufferedImage image = mat2BufferedImage(res);
         return Response.ok(image).build();
     }
@@ -68,32 +68,32 @@ public class GeoTiffResource {
         LOG.info("Object Detection for image from the request " + sentinelRequest);
 
         InputStream inputStream = sentinelProcessApiClient.getGeoTiff(sentinelRequest.getExtent(), sentinelRequest.getDateFrom() + "T00:00:00Z", sentinelRequest.getDateTo() + "T00:00:00Z", sentinelRequest.getCloudCoverage());
-        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(inputStream));
+        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(inputStream), "");
         BufferedImage image = mat2BufferedImage(res);
 
         return Response.ok(image).build();
     }
 
-    @POST
-    @Path("/td")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces({"image/png", "image/jpg"})
-    public Response treeDetection(@MultipartForm MultipartBody data) {
-        LOG.info("Tree Detection for image from the request " + data.fileName);
-        System.out.println(data.file);
-
-        Mat res = treeDetection.detectObjectOnImage(readImageFromInputStream(data.file));
-        BufferedImage image = mat2BufferedImage(res);
-
-        return Response.ok(image).build();
-    }
+//    @POST
+//    @Path("/td")
+//    @Consumes(MediaType.MULTIPART_FORM_DATA)
+//    @Produces({"image/png", "image/jpg"})
+//    public Response treeDetection(@MultipartForm MultipartBody data) {
+//        LOG.info("Tree Detection for image from the request " + data.fileName);
+//        System.out.println(data.file);
+//
+//        Mat res = treeDetection.detectObjectOnImage(readImageFromInputStream(data.file));
+//        BufferedImage image = mat2BufferedImage(res);
+//
+//        return Response.ok(image).build();
+//    }
 
     @POST
     @Path("/od/bing")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({"image/png", "image/jpg"})
     public Response objectDetection(@MultipartForm MultipartBody data) {
-        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(data.file));
+        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(data.file), "");
 
         BufferedImage image = mat2BufferedImage(res);
 

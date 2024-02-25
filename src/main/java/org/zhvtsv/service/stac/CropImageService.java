@@ -26,6 +26,7 @@ public class CropImageService {
         try {
 
             envelope = new ReferencedEnvelope(  extent[1],extent[3], extent[0], extent[2] , CRS.decode("EPSG:4326"));
+            System.out.println(envelope);
         } catch (FactoryException e) {
             throw new RuntimeException(e);
         }

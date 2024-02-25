@@ -57,7 +57,7 @@ public class RemoteSensingResource {
         LOG.info("Load GeoTiff for item with id "+ extentRequest.getId() + " and extent "+Arrays.toString(extentRequest.getExtent()));
         STACItemPreview stacItemPreview = this.stacClient.getStacItemById(extentRequest.getId());
         Mat image = this.geoTiffService.downloadStacItemGeoTiffRGB(stacItemPreview.getDownloadUrl(), extentRequest.getExtent());
-        Mat res = yolovObjectDetection.detectObjectOnImage(image);
+        Mat res = yolovObjectDetection.detectObjectOnImage(image, extentRequest.getModel());
         BufferedImage response = mat2BufferedImage(res);
         return Response.ok(response).build();
     }
@@ -69,20 +69,20 @@ public class RemoteSensingResource {
         LOG.info("Load GeoTiff for item with id "+ extentRequest.getId() + " and extent "+Arrays.toString(extentRequest.getExtent()));
         STACItemPreview stacItemPreview = this.stacClient.getStacItemById(extentRequest.getId());
         Mat image = this.geoTiffService.downloadStacItemGeoTiffRGB(stacItemPreview.getDownloadUrl(), extentRequest.getExtent());
-        Mat res = treeDetection.detectObjectOnImage(image);
+        Mat res = treeDetection.detectObjectOnImage(image, extentRequest.getModel());
         BufferedImage response = mat2BufferedImage(res);
         return Response.ok(response).build();
     }
-    @POST
-    @Path("/tree-detection/deepforest")
-    @Produces({"image/png", "image/jpg", "image/tiff"})
-    public Response treeDetectionDeepforest(ExtentRequest extentRequest) {
-        LOG.info("Load GeoTiff for item with id "+ extentRequest.getId() + " and extent "+Arrays.toString(extentRequest.getExtent()));
-        STACItemPreview stacItemPreview = this.stacClient.getStacItemById(extentRequest.getId());
-        byte[] image = this.geoTiffService.downloadStacItemGeoTiffRGBBytes(stacItemPreview.getDownloadUrl(), extentRequest.getExtent());
-
-        return Response.ok(treeDetectionDeepforest.detectObjectOnImage(image)).build();
-    }
+//    @POST
+//    @Path("/tree-detection/deepforest")
+//    @Produces({"image/png", "image/jpg", "image/tiff"})
+//    public Response treeDetectionDeepforest(ExtentRequest extentRequest) {
+//        LOG.info("Load GeoTiff for item with id "+ extentRequest.getId() + " and extent "+Arrays.toString(extentRequest.getExtent()));
+//        STACItemPreview stacItemPreview = this.stacClient.getStacItemById(extentRequest.getId());
+//        byte[] image = this.geoTiffService.downloadStacItemGeoTiffRGBBytes(stacItemPreview.getDownloadUrl(), extentRequest.getExtent());
+//
+//        return Response.ok(treeDetectionDeepforest.detectObjectOnImage(image)).build();
+//    }
     private static String getBoundingBoxString(double[] extent) {
         String array = Arrays.toString(extent);
         return array.substring(1, array.length() - 2).replaceAll("\\s+", "");

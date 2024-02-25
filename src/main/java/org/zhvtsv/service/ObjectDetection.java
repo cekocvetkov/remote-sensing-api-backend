@@ -21,13 +21,13 @@ import java.util.stream.Stream;
 import static org.opencv.imgcodecs.Imgcodecs.imread;
 
 @ApplicationScoped
-public class ObjectDetection
+public class ObjectDetection implements IDetectionService
 {
     private static final String MODEL_PATH = "yolov8dior.onnx";
     private static final String CLASSES_PATH = "yolov8ObjectDetectionDiorClasses.txt";
-    private static final int IMG_SIZE=800;
+    private static final int IMG_SIZE=640;
 
-    public Mat detectObjectOnImage(Mat geoTiffImage){
+    public Mat detectObjectOnImage(Mat geoTiffImage, String model){
         // Convert to 3 channels (RGB) if it has an alpha channel
         if (geoTiffImage.channels() == 4) {
             List<Mat> channels = new ArrayList<>();
@@ -41,17 +41,23 @@ public class ObjectDetection
         }
 //        Mat inputBlob = preProcessImageForYolov8ObjectDetectionDior(geoTiffImage);
         Mat resizedImage = new Mat();
-        Imgproc.resize(geoTiffImage, resizedImage, new Size(IMG_SIZE, IMG_SIZE), Imgproc.INTER_AREA);
+        int imageSize = IMG_SIZE;
+        if(model.startsWith("yolov8")){
+            imageSize = 800;
+        }
+        Imgproc.resize(geoTiffImage, resizedImage, new Size(imageSize, imageSize), Imgproc.INTER_AREA);
         Imgcodecs.imwrite(PathUtils.getPathForImageInResources( "resized.tif" ), resizedImage);
 
         // Calculate scale factor
 //        double scale = length / IMG_SIZE;
-        Mat inputBlob = Dnn.blobFromImage(resizedImage, 1.0/255.0, new Size(IMG_SIZE, IMG_SIZE), // Here we supply the spatial size that the Convolutional Neural Network expects.
+        Mat inputBlob = Dnn.blobFromImage(resizedImage, 1.0/255.0, new Size(imageSize, imageSize), // Here we supply the spatial size that the Convolutional Neural Network expects.
                 new Scalar(new double[]{0.0, 0.0, 0.0}), true, false);
 //        Mat inputBlob = preProcessImageForYolov8EuroSat(imageLocation);
 
         // read generated ONNX model into org.opencv.dnn.Net object
-        Net dnnNet = Dnn.readNetFromONNX(PathUtils.getPathForImageInResources( MODEL_PATH ));
+        System.out.println(model);
+        System.out.println(PathUtils.getPathForImageInResources(model+".onnx" ));
+        Net dnnNet = Dnn.readNetFromONNX(PathUtils.getPathForImageInResources( model+".onnx" ));
         System.out.println("DNN from ONNX was successfully loaded!");
 
         // Set input for the neural network model
@@ -120,7 +126,7 @@ public class ObjectDetection
         MatOfInt boxesResult = new MatOfInt();
         Dnn.NMSBoxes( mOfRect, mScores, 0.25f, 0.45f, boxesResult);
         System.out.println(classIds);
-        drawBoxesOnTheImage( resizedImage, boxesResult , boxes, getClasses(), classIds, getRandomColorsPerClass());
+        drawBoxesOnTheImage( resizedImage, boxesResult , boxes, getClasses(model), classIds, getRandomColorsPerClass(model));
 //        Imgcodecs.imwrite(PathUtils.getPathForImageInResources( "1.jpg" ), resizedImage);
 //        HighGui.imshow("Test", img );
 //        HighGui.waitKey(10000);
@@ -130,10 +136,10 @@ public class ObjectDetection
         return resizedImage;
     }
 
-    public ArrayList<Scalar> getRandomColorsPerClass() {
+    public ArrayList<Scalar> getRandomColorsPerClass(String model) {
         Random random = new Random();
         ArrayList<Scalar> colors = new ArrayList<Scalar>();
-        for (int i= 0; i < getClasses().size(); i++) {
+        for (int i= 0; i < getClasses(model).size(); i++) {
             colors.add(new Scalar( new double[] {random.nextInt(255), random.nextInt(255), random.nextInt(255)}));
         }
         return colors;
@@ -150,15 +156,23 @@ public class ObjectDetection
                 Point text_point = new Point(box.x, box.y - 5);
                 Imgproc.rectangle(img, w_h, x_y, new Scalar(0, 165, 255), 1);
                 String label = cocoLabels.get(classIds.get(i));
-                Imgproc.putText(img, label, text_point, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 165, 255), 2);
+                Imgproc.putText(img, label, text_point, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 165, 255), 1);
             }
         }
         return img;
     }
-    private ArrayList<String> getClasses()
+    private ArrayList<String> getClasses(String model)
     {
         ArrayList<String> imgLabels;
-        try (Stream<String> lines = Files.lines( Path.of( PathUtils.getPathForImageInResources( CLASSES_PATH ) ) )) {
+        String classesPath = CLASSES_PATH;
+        if(model.startsWith("project")){
+            classesPath = "project.txt";
+        }
+        if(model.startsWith("robotic")){
+            classesPath = "robotic.txt";
+        }
+
+        try (Stream<String> lines = Files.lines( Path.of( PathUtils.getPathForImageInResources( classesPath ) ) )) {
             imgLabels = lines.collect( Collectors.toCollection(ArrayList::new));
         }
         catch ( IOException e )
@@ -167,7 +181,7 @@ public class ObjectDetection
         }
         return imgLabels;
     }
-    private Mat preProcessImageForYolov8ObjectDetectionDior(Mat imageToPreprocess) {
+    private Mat preProcessImageForYolov8ObjectDetectionDior(Mat imageToPreprocess, int imageSize) {
         // Get the dimensions of the original image
 //        int height = imageToPreprocess.rows();
 //        int width = imageToPreprocess.cols();
@@ -178,12 +192,12 @@ public class ObjectDetection
 //        Mat image = new Mat(new Size(length, length), CvType.CV_8UC3, new Scalar(0, 0, 0));
 //        imageToPreprocess.copyTo(image.submat(0, height, 0, width));
         Mat resizedImage = new Mat();
-        Imgproc.resize(imageToPreprocess, resizedImage, new Size(IMG_SIZE, IMG_SIZE), Imgproc.INTER_AREA);
+        Imgproc.resize(imageToPreprocess, resizedImage, new Size(imageSize, imageSize), Imgproc.INTER_AREA);
         Imgcodecs.imwrite(PathUtils.getPathForImageInResources( "resized.tif" ), resizedImage);
 
         // Calculate scale factor
 //        double scale = length / IMG_SIZE;
-        Mat blob = Dnn.blobFromImage(resizedImage, 1.0/255.0, new Size(IMG_SIZE, IMG_SIZE), // Here we supply the spatial size that the Convolutional Neural Network expects.
+        Mat blob = Dnn.blobFromImage(resizedImage, 1.0/255.0, new Size(imageSize, imageSize), // Here we supply the spatial size that the Convolutional Neural Network expects.
                 new Scalar(new double[]{0.0, 0.0, 0.0}), true, false);
 
         return blob;

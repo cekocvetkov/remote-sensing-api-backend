@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class ExtentRequest {
     private String id;
     private double [] extent;
-    private String dataSource;
+    private String model;
 
     public double[] getExtent() {
         return extent;
@@ -23,12 +23,12 @@ public class ExtentRequest {
         this.id = id;
     }
 
-    public String getDataSource() {
-        return dataSource;
+    public String getModel() {
+        return model;
     }
 
-    public void setDataSource(String dataSource) {
-        this.dataSource = dataSource;
+    public void setModel(String model) {
+        this.model = model;
     }
 
     @Override
@@ -36,7 +36,7 @@ public class ExtentRequest {
         return "ExtentRequest{" +
                 "id='" + id + '\'' +
                 ", extent=" + Arrays.toString(extent) +
-                ", dataSource='" + dataSource + '\'' +
+                ", model='" + model + '\'' +
                 '}';
     }
 }

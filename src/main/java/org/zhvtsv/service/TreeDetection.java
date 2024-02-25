@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ApplicationScoped
-public class TreeDetection
+public class TreeDetection implements IDetectionService
 {
-    private static final String MODEL_PATH = "yolov8TreeDetection.onnx";
     private static final String CLASSES_PATH = "yolov8TreeDetectionClasses.txt";
     private static final int IMG_SIZE=640;
 
-    public Mat detectObjectOnImage(Mat image){
+    public Mat detectObjectOnImage(Mat image, String model){
+
         System.out.println("Image has " + image.channels());
         // Convert to 3 channels (RGB) if it has an alpha channel
         if (image.channels() == 4) {
@@ -50,7 +50,9 @@ public class TreeDetection
 //        Mat inputBlob = preProcessImageForYolov8EuroSat(imageLocation);
 
         // read generated ONNX model into org.opencv.dnn.Net object
-        Net dnnNet = Dnn.readNetFromONNX(PathUtils.getPathForImageInResources( MODEL_PATH ));
+        System.out.println(model);
+        System.out.println(PathUtils.getPathForImageInResources( model+".onnx" ));
+        Net dnnNet = Dnn.readNetFromONNX(PathUtils.getPathForImageInResources( model+".onnx" ));
         System.out.println("DNN from ONNX was successfully loaded!");
 
         // Set input for the neural network model
@@ -148,6 +150,8 @@ public class TreeDetection
                 Point w_h = new Point(box.x + box.width, box.y + box.height);
                 Point text_point = new Point(box.x, box.y - 5);
                 Imgproc.rectangle(img, w_h, x_y, new Scalar(0, 165, 255), 1);
+                System.out.println(cocoLabels);
+
                 String label = cocoLabels.get(classIds.get(i));
                 Imgproc.putText(img, label, text_point, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 165, 255), 2);
             }
