@@ -46,19 +46,7 @@ public class GeoTiffResource {
         BufferedImage image = mat2BufferedImage(res);
         return Response.ok(image).build();
     }
-    @POST
-    @Path("/classify")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response classifyGeoTiff(SentinelRequest sentinelRequest) {
-        String boundingBox = getBoundingBoxString(sentinelRequest.getExtent());
-        LOG.info("Classify the geotiff from the request " + sentinelRequest);
 
-
-        InputStream inputStream = sentinelProcessApiClient.getGeoTiff(sentinelRequest.getExtent(), sentinelRequest.getDateFrom() + "T00:00:00Z", sentinelRequest.getDateTo() + "T00:00:00Z", sentinelRequest.getCloudCoverage());
-
-        return Response.ok(yolov8EuroSat.predictClass(readImageFromInputStream(inputStream))).build();
-    }
     @POST
     @Path("/od")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -74,26 +62,18 @@ public class GeoTiffResource {
         return Response.ok(image).build();
     }
 
-//    @POST
-//    @Path("/td")
-//    @Consumes(MediaType.MULTIPART_FORM_DATA)
-//    @Produces({"image/png", "image/jpg"})
-//    public Response treeDetection(@MultipartForm MultipartBody data) {
-//        LOG.info("Tree Detection for image from the request " + data.fileName);
-//        System.out.println(data.file);
-//
-//        Mat res = treeDetection.detectObjectOnImage(readImageFromInputStream(data.file));
-//        BufferedImage image = mat2BufferedImage(res);
-//
-//        return Response.ok(image).build();
-//    }
-
     @POST
-    @Path("/od/bing")
+    @Path("/bing/detection")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({"image/png", "image/jpg"})
     public Response objectDetection(@MultipartForm MultipartBody data) {
-        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(data.file), "");
+        String model = data.model;
+        Mat res = new Mat();
+        if (model.endsWith("tree-detection")) {
+            res = treeDetection.detectObjectOnImage(readImageFromInputStream(data.file), data.model);
+        } else if (model.endsWith("object-detection")) {
+            res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(data.file), data.model);
+        }
 
         BufferedImage image = mat2BufferedImage(res);
 
@@ -110,12 +90,13 @@ public class GeoTiffResource {
         MatOfByte matOfByte = new MatOfByte(imageBytes);
         return Imgcodecs.imdecode(matOfByte, Imgcodecs.IMREAD_UNCHANGED);
     }
+
     private String getBoundingBoxString(double[] extent) {
         String array = Arrays.toString(extent);
         return array.substring(1, array.length() - 2).replaceAll("\\s+", "");
     }
 
-    public BufferedImage mat2BufferedImage(Mat mat) {
+    private BufferedImage mat2BufferedImage(Mat mat) {
         //Encoding the image
         MatOfByte matOfByte = new MatOfByte();
         Imgcodecs.imencode(".png", mat, matOfByte);
