@@ -3,10 +3,7 @@ package org.zhvtsv;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.ext.MessageBodyWriter;
-import jakarta.ws.rs.ext.Provider;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.opencv.core.Mat;
@@ -17,8 +14,6 @@ import org.zhvtsv.service.*;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 
 @Path("/api/v1/sentinel")
@@ -36,7 +31,6 @@ public class GeoTiffResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({"image/png", "image/jpg", "image/tiff"})
-//    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getGeoTiffSentinel(SentinelRequest sentinelRequest) {
         String boundingBox = getBoundingBoxString(sentinelRequest.getExtent());
         LOG.info("Request for GeoTiffs " + sentinelRequest);

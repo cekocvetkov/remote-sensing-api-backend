@@ -1,6 +1,5 @@
 package org.zhvtsv;
 
-
 import jakarta.inject.Inject;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -40,6 +39,7 @@ public class RemoteSensingResource {
     TreeDetection treeDetection;
     @Inject
     TreeDetectionDeepforest treeDetectionDeepforest;
+
     @POST
     @Path("/items")
     @Produces(MediaType.APPLICATION_JSON)
@@ -51,28 +51,27 @@ public class RemoteSensingResource {
     }
 
     @POST
-    @Path("/object-detection")
+    @Path("/detection")
     @Produces({"image/png", "image/jpg", "image/tiff"})
     public Response objectDetection(ExtentRequest extentRequest) {
-        LOG.info("Load GeoTiff for item with id "+ extentRequest.getId() + " and extent "+Arrays.toString(extentRequest.getExtent()));
-        STACItemPreview stacItemPreview = this.stacClient.getStacItemById(extentRequest.getId());
-        Mat image = this.geoTiffService.downloadStacItemGeoTiffRGB(stacItemPreview.getDownloadUrl(), extentRequest.getExtent());
-        Mat res = yolovObjectDetection.detectObjectOnImage(image, extentRequest.getModel());
+        String id = extentRequest.getId();
+        String model = extentRequest.getModel();
+        double [] extent = extentRequest.getExtent();
+
+        LOG.info("Load GeoTiff for item with id " + id + " and extent " + Arrays.toString(extent));
+        STACItemPreview stacItemPreview = this.stacClient.getStacItemById(id);
+        Mat image = this.geoTiffService.downloadStacItemGeoTiffRGB(stacItemPreview.getDownloadUrl(), extent);
+        Mat res = new Mat();
+
+        if (model.endsWith("object-detection")) {
+            res = yolovObjectDetection.detectObjectOnImage(image, model);
+        } else if (model.endsWith("tree-detection")) {
+            res = treeDetection.detectObjectOnImage(image, extentRequest.getModel());
+        }
         BufferedImage response = mat2BufferedImage(res);
         return Response.ok(response).build();
     }
 
-    @POST
-    @Path("/tree-detection")
-    @Produces({"image/png", "image/jpg", "image/tiff"})
-    public Response treeDetectionYolo(ExtentRequest extentRequest) {
-        LOG.info("Load GeoTiff for item with id "+ extentRequest.getId() + " and extent "+Arrays.toString(extentRequest.getExtent()));
-        STACItemPreview stacItemPreview = this.stacClient.getStacItemById(extentRequest.getId());
-        Mat image = this.geoTiffService.downloadStacItemGeoTiffRGB(stacItemPreview.getDownloadUrl(), extentRequest.getExtent());
-        Mat res = treeDetection.detectObjectOnImage(image, extentRequest.getModel());
-        BufferedImage response = mat2BufferedImage(res);
-        return Response.ok(response).build();
-    }
 //    @POST
 //    @Path("/tree-detection/deepforest")
 //    @Produces({"image/png", "image/jpg", "image/tiff"})
