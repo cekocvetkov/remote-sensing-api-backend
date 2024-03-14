@@ -27,6 +27,8 @@ public class GeoTiffResource {
     ObjectDetection yolovObjectDetection;
     @Inject
     TreeDetection treeDetection;
+    @Inject
+    TreeDetectionDeepforest treeDetectionDeepforest;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -36,7 +38,7 @@ public class GeoTiffResource {
         LOG.info("Request for GeoTiffs " + sentinelRequest);
 
         InputStream inputStream = sentinelProcessApiClient.getGeoTiff(sentinelRequest.getExtent(), sentinelRequest.getDateFrom() + "T00:00:00Z", sentinelRequest.getDateTo() + "T00:00:00Z", sentinelRequest.getCloudCoverage());
-        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(inputStream), "");
+        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(inputStream), sentinelRequest.getModel());
         BufferedImage image = mat2BufferedImage(res);
         return Response.ok(image).build();
     }
@@ -68,7 +70,10 @@ public class GeoTiffResource {
         } else if (model.endsWith("object-detection")) {
             res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(data.file), data.model);
         }
+        else {
+            return Response.ok(treeDetectionDeepforest.detectObjectOnImage(res, model)).build();
 
+        }
         BufferedImage image = mat2BufferedImage(res);
 
         return Response.ok(image).build();

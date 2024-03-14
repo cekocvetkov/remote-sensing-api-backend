@@ -8,6 +8,8 @@ public class SentinelRequest {
     private double[] extent;
     private int cloudCoverage;
 
+    private String model;
+
     public String getDateFrom() {
         return dateFrom;
     }
@@ -38,6 +40,14 @@ public class SentinelRequest {
 
     public void setCloudCoverage(int cloudCoverage) {
         this.cloudCoverage = cloudCoverage;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 
     @Override

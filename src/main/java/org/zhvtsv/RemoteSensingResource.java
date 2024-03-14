@@ -67,6 +67,9 @@ public class RemoteSensingResource {
             res = yolovObjectDetection.detectObjectOnImage(image, model);
         } else if (model.endsWith("tree-detection")) {
             res = treeDetection.detectObjectOnImage(image, extentRequest.getModel());
+        } else {
+            return Response.ok(treeDetectionDeepforest.detectObjectOnImage(image, extentRequest.getModel())).build();
+
         }
         BufferedImage response = mat2BufferedImage(res);
         return Response.ok(response).build();

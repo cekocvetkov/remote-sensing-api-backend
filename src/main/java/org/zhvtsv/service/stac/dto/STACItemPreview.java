@@ -2,6 +2,7 @@ package org.zhvtsv.service.stac.dto;
 
 public class STACItemPreview {
     private String id;
+    private String collection;
     private String thumbnailUrl;
     private String downloadUrl;
 
@@ -29,12 +30,21 @@ public class STACItemPreview {
         this.downloadUrl = downloadUrl;
     }
 
+    public String getCollection() {
+        return collection;
+    }
+
+    public void setCollection(String collection) {
+        this.collection = collection;
+    }
+
     @Override
     public String toString() {
         return "STACItemPreview{" +
                 "id='" + id + '\'' +
                 ", thumbnailUrl='" + thumbnailUrl + '\'' +
                 ", downloadUrl='" + downloadUrl + '\'' +
+                ", collection='" + collection + '\'' +
                 '}';
     }
 }

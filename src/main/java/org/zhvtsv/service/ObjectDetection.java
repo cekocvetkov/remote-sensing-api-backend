@@ -23,7 +23,7 @@ import static org.opencv.imgcodecs.Imgcodecs.imread;
 @ApplicationScoped
 public class ObjectDetection implements IDetectionService
 {
-    private static final String MODEL_PATH = "yolov8dior.onnx";
+    private static final String MODEL_PATH = "yolov8dior__object-detection.onnx";
     private static final String CLASSES_PATH = "yolov8ObjectDetectionDiorClasses.txt";
     private static final int IMG_SIZE=640;
 
@@ -156,7 +156,7 @@ public class ObjectDetection implements IDetectionService
                 Point text_point = new Point(box.x, box.y - 5);
                 Imgproc.rectangle(img, w_h, x_y, new Scalar(0, 165, 255), 1);
                 String label = cocoLabels.get(classIds.get(i));
-                Imgproc.putText(img, label, text_point, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 165, 255), 1);
+                Imgproc.putText(img, label, text_point, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 165, 255), 2);
             }
         }
         return img;

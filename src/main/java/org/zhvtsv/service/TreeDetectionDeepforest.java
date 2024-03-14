@@ -37,7 +37,10 @@ public class TreeDetectionDeepforest
     private static final String CLASSES_PATH = "yolov8TreeDetectionClasses.txt";
     private static final int IMG_SIZE=640;
 
-    public byte[] detectObjectOnImage(byte[] image){
+    public byte[] detectObjectOnImage(Mat image, String model){
+        MatOfByte matOfByte = new MatOfByte();
+        Imgcodecs.imencode(".tif", image, matOfByte);
+        byte[] img = matOfByte.toArray();
         HttpClient httpClient = HttpClient.newHttpClient();
 //        Map<String, byte[]> formData = Map.of("image", image);
 
@@ -47,7 +50,7 @@ public class TreeDetectionDeepforest
             request = HttpRequest.newBuilder()
                     .uri(new URI("http://localhost:8081/deepforest"))
                     .header("Content-Type", "multipart/form-data")
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(image))
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(img))
                     .build();
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
@@ -69,7 +72,7 @@ public class TreeDetectionDeepforest
         // Access the response body as a byte array
         byte[] responseBody = response.body();
             try {
-                Files.write(Path.of("/Users/zezko/Documents/bakk/sentinel-processing-api/src/main/resources/zezkobytes.jpg"), responseBody);
+                Files.write(Path.of("/Users/zezko/Documents/bakk/sentinel-processing-api/src/main/resources/zezkobytes.tif"), responseBody);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

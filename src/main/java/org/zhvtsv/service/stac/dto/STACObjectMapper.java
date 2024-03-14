@@ -43,6 +43,7 @@ public class STACObjectMapper {
     public static STACItemPreview getStacItemPreview(JSONObject jsonBody) {
         STACItemPreview stacItemPreview = new STACItemPreview();
         String id = jsonBody.getString("id");
+        String collection = jsonBody.getString("collection");
         String downloadUrl = "";
         System.out.println(jsonBody.getJSONObject("assets"));
         if(jsonBody.getJSONObject("assets").optJSONObject("image") != null) { //Planet Computer
@@ -59,6 +60,7 @@ public class STACObjectMapper {
         }
 
         stacItemPreview.setId(id);
+        stacItemPreview.setCollection(collection);
         stacItemPreview.setThumbnailUrl(thumbnailUrl);
         stacItemPreview.setDownloadUrl(downloadUrl);
 
