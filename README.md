@@ -1,4 +1,4 @@
-# sentinel-processing-api
+# Remote Sensing API Backend for Object and Tree Detection
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
