@@ -4,9 +4,12 @@ import jakarta.ws.rs.NotFoundException;
 import org.jboss.logging.Logger;
 import org.opencv.core.*;
 import org.opencv.dnn.Dnn;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,6 +28,17 @@ public class ImageUtils {
             geoTiffImage = bgrImage;
         }
         return geoTiffImage;
+    }
+
+    public static Mat readImageFromInputStream(InputStream inputStream) {
+        byte[] imageBytes = new byte[0];
+        try {
+            imageBytes = inputStream.readAllBytes();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        MatOfByte matOfByte = new MatOfByte(imageBytes);
+        return Imgcodecs.imdecode(matOfByte, Imgcodecs.IMREAD_UNCHANGED);
     }
 
     public static Mat extractAndDrawBoxesFromInference(Mat mat2D, Mat resizedImage, List<String> classes) {

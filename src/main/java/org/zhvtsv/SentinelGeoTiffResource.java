@@ -1,27 +1,32 @@
 package org.zhvtsv;
 
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.zhvtsv.models.MultipartBody;
-import org.zhvtsv.service.*;
+import org.zhvtsv.service.ObjectDetection;
+import org.zhvtsv.service.TreeDetection;
+import org.zhvtsv.service.TreeDetectionDeepforest;
 import org.zhvtsv.service.sentinel.SentinelProcessApiClient;
 import org.zhvtsv.service.sentinel.SentinelRequest;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 
 @Path("/api/v1/sentinel")
-public class GeoTiffResource {
-    private static final Logger LOG = Logger.getLogger(GeoTiffResource.class);
+public class SentinelGeoTiffResource {
+    private static final Logger LOG = Logger.getLogger(SentinelGeoTiffResource.class);
     @Inject
     SentinelProcessApiClient sentinelProcessApiClient;
     @Inject
@@ -44,26 +49,6 @@ public class GeoTiffResource {
         return Response.ok(image).build();
     }
 
-    @POST
-    @Path("/bing/detection")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces({"image/png", "image/jpg"})
-    public Response objectDetection(@MultipartForm MultipartBody data) {
-        String model = data.model;
-        Mat res = new Mat();
-        if (model.endsWith("tree-detection")) {
-            res = treeDetection.detectObjectOnImage(readImageFromInputStream(data.file), data.model);
-        } else if (model.endsWith("object-detection")) {
-            res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(data.file), data.model);
-        }
-        else {
-            return Response.ok(treeDetectionDeepforest.detectObjectOnImage(res, model)).build();
-
-        }
-        BufferedImage image = mat2BufferedImage(res);
-
-        return Response.ok(image).build();
-    }
 
     private Mat readImageFromInputStream(InputStream inputStream) {
         byte[] imageBytes = new byte[0];
