@@ -20,42 +20,38 @@ import java.util.List;
 @ApplicationScoped
 public class STACClient {
     private static final Logger LOG = Logger.getLogger(STACClient.class);
-
+    private final HttpClient httpClient;
     @ConfigProperty(name = "stac-urls")
     private List<String> urls;
 
-    private final HttpClient httpClient;
-    private final STACConfig stacConfig;
-
-    public STACClient(STACConfig stacConfig) {
+    public STACClient() {
         this.httpClient = HttpClient.newBuilder().build();
-        this.stacConfig = stacConfig;
     }
 
-    public List<STACItemPreview> getStacItems(String boundingBox){
+    public List<STACItemPreview> getStacItems(String boundingBox) {
         // Make get items request for all the stac sources we have defined in the properties file
-        System.out.println(urls);
+        LOG.info("Make stac items request for the following sources: " + urls);
         List<String> responseBodys = new ArrayList<>();
-        for(String url: urls){
-            String responseBody = makeGetRequest(url + "?bbox="+boundingBox+"&timerange=2011-12-01/2020-12-31&eo:cloud_cover=10");
+        for (String url : urls) {
+            String responseBody = makeGetRequest(url + "?bbox=" + boundingBox + "&timerange=2011-12-01/2020-12-31&eo:cloud_cover=10");
             responseBodys.add(responseBody);
         }
-//        String responseBody = makeGetRequest(stacConfig.url() + "?bbox="+boundingBox+"&timerange=2011-12-01/2020-12-31&eo:cloud_cover=10");
         return STACObjectMapper.getStacItemsPreview(responseBodys);
     }
-    public STACItemPreview getStacItemById(String id){
-        for(String url: urls){
+
+    public STACItemPreview getStacItemById(String id) {
+        for (String url : urls) {
             try {
                 String responseBody = makeGetRequest(url + "/" + id);
                 return STACObjectMapper.getStacItemPreview(new JSONObject(responseBody));
-            } catch (ServerErrorException ex){
-                System.out.println("Id not found for "+url);
+            } catch (ServerErrorException ex) {
+                LOG.info("Id not found for " + url);
             }
         }
         return null;
     }
 
-    private String makeGetRequest(String url)  {
+    private String makeGetRequest(String url) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .GET()
