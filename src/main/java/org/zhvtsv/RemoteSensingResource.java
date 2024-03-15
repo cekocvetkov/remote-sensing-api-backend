@@ -69,22 +69,11 @@ public class RemoteSensingResource {
             res = treeDetection.detectObjectOnImage(image, extentRequest.getModel());
         } else {
             return Response.ok(treeDetectionDeepforest.detectObjectOnImage(image, extentRequest.getModel())).build();
-
         }
         BufferedImage response = mat2BufferedImage(res);
         return Response.ok(response).build();
     }
 
-//    @POST
-//    @Path("/tree-detection/deepforest")
-//    @Produces({"image/png", "image/jpg", "image/tiff"})
-//    public Response treeDetectionDeepforest(ExtentRequest extentRequest) {
-//        LOG.info("Load GeoTiff for item with id "+ extentRequest.getId() + " and extent "+Arrays.toString(extentRequest.getExtent()));
-//        STACItemPreview stacItemPreview = this.stacClient.getStacItemById(extentRequest.getId());
-//        byte[] image = this.geoTiffService.downloadStacItemGeoTiffRGBBytes(stacItemPreview.getDownloadUrl(), extentRequest.getExtent());
-//
-//        return Response.ok(treeDetectionDeepforest.detectObjectOnImage(image)).build();
-//    }
     private static String getBoundingBoxString(double[] extent) {
         String array = Arrays.toString(extent);
         return array.substring(1, array.length() - 2).replaceAll("\\s+", "");

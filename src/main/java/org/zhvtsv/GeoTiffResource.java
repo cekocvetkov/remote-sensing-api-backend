@@ -9,7 +9,10 @@ import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.zhvtsv.models.MultipartBody;
 import org.zhvtsv.service.*;
+import org.zhvtsv.service.sentinel.SentinelProcessApiClient;
+import org.zhvtsv.service.sentinel.SentinelRequest;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -21,8 +24,6 @@ public class GeoTiffResource {
     private static final Logger LOG = Logger.getLogger(GeoTiffResource.class);
     @Inject
     SentinelProcessApiClient sentinelProcessApiClient;
-    @Inject
-    Yolov8EuroSat yolov8EuroSat;
     @Inject
     ObjectDetection yolovObjectDetection;
     @Inject
@@ -40,21 +41,6 @@ public class GeoTiffResource {
         InputStream inputStream = sentinelProcessApiClient.getGeoTiff(sentinelRequest.getExtent(), sentinelRequest.getDateFrom() + "T00:00:00Z", sentinelRequest.getDateTo() + "T00:00:00Z", sentinelRequest.getCloudCoverage());
         Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(inputStream), sentinelRequest.getModel());
         BufferedImage image = mat2BufferedImage(res);
-        return Response.ok(image).build();
-    }
-
-    @POST
-    @Path("/od")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({"image/png", "image/jpg"})
-    public Response objectDetection(SentinelRequest sentinelRequest) {
-        String boundingBox = getBoundingBoxString(sentinelRequest.getExtent());
-        LOG.info("Object Detection for image from the request " + sentinelRequest);
-
-        InputStream inputStream = sentinelProcessApiClient.getGeoTiff(sentinelRequest.getExtent(), sentinelRequest.getDateFrom() + "T00:00:00Z", sentinelRequest.getDateTo() + "T00:00:00Z", sentinelRequest.getCloudCoverage());
-        Mat res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(inputStream), "");
-        BufferedImage image = mat2BufferedImage(res);
-
         return Response.ok(image).build();
     }
 

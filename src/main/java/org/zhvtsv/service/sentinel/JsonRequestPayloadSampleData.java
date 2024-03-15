@@ -1,4 +1,4 @@
-package org.zhvtsv.service;
+package org.zhvtsv.service.sentinel;
 
 public class JsonRequestPayloadSampleData {
     public static String JSON_EVALSCRIPT = "//VERSION=3\n\n" +

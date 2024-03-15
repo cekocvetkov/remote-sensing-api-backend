@@ -1,4 +1,4 @@
-package org.zhvtsv;
+package org.zhvtsv.utils;
 
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;

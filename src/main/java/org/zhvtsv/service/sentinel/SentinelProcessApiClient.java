@@ -1,4 +1,4 @@
-package org.zhvtsv.service;
+package org.zhvtsv.service.sentinel;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

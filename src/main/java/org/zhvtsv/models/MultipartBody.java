@@ -1,4 +1,4 @@
-package org.zhvtsv;
+package org.zhvtsv.models;
 
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.core.MediaType;

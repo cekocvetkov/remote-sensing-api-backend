@@ -1,4 +1,4 @@
-package org.zhvtsv.service;
+package org.zhvtsv.service.sentinel;
 
 import java.util.Arrays;
 
