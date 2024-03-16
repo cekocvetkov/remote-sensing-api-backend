@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import org.json.JSONObject;
+import org.zhvtsv.models.ExtentRequest;
 import org.zhvtsv.service.stac.dto.STACItemPreview;
 import org.zhvtsv.service.stac.dto.STACObjectMapper;
 
@@ -15,6 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @ApplicationScoped
@@ -28,12 +30,13 @@ public class STACClient {
         this.httpClient = HttpClient.newBuilder().build();
     }
 
-    public List<STACItemPreview> getStacItems(String boundingBox) {
+    public List<STACItemPreview> getStacItems(ExtentRequest extentRequest) {
         // Make get items request for all the stac sources we have defined in the properties file
         LOG.info("Make stac items request for the following sources: " + urls);
         List<String> responseBodys = new ArrayList<>();
         for (String url : urls) {
-            String responseBody = makeGetRequest(url + "?bbox=" + boundingBox + "&timerange=2011-12-01/2020-12-31&eo:cloud_cover=10");
+            String responseBody = makeGetRequest(url + "?bbox=" + getBoundingBoxString(extentRequest.getExtent()) + "&timerange=" + extentRequest.getDateFrom() + "/" + extentRequest.getDateTo()
+                    + "&eo:cloud_cover=" + extentRequest.getCloudCoverage());
             responseBodys.add(responseBody);
         }
         return STACObjectMapper.getStacItemsPreview(responseBodys);
@@ -68,6 +71,10 @@ public class STACClient {
         } catch (IOException | InterruptedException e) {
             throw new ServerErrorException("STAC Request failed", Response.Status.BAD_GATEWAY, e);
         }
+    }
 
+    private static String getBoundingBoxString(double[] extent) {
+        String array = Arrays.toString(extent);
+        return array.substring(1, array.length() - 2).replaceAll("\\s+", "");
     }
 }

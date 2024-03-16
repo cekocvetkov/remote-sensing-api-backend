@@ -14,9 +14,8 @@ import java.net.http.HttpResponse;
 
 @ApplicationScoped
 public class TreeDetectionDeepforest {
-    private static final String CLASSES_PATH = "yolov8TreeDetectionClasses.txt";
 
-    public byte[] detectObjectOnImage(Mat image, String model) {
+    public byte[] detectObjectOnImage(Mat image) {
         MatOfByte matOfByte = new MatOfByte();
         Imgcodecs.imencode(".tif", image, matOfByte);
         byte[] img = matOfByte.toArray();

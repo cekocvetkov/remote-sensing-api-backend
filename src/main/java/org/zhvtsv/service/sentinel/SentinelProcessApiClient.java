@@ -19,35 +19,33 @@ import java.util.Arrays;
 public class SentinelProcessApiClient {
     @Inject
     SentinelAuth sentinelAuth;
-    
 
-    public InputStream getGeoTiff(double[] boundingBox, String dateFrom, String dateTo, int cloudCoveragePercent) {
+    public InputStream getGeoTiff(SentinelRequest request) {
         HttpClient httpClient = HttpClient.newBuilder().build();
 
-        JSONObject payload = getRequestPayload(boundingBox, dateFrom, dateTo, cloudCoveragePercent);
+        JSONObject payload = getRequestPayload(request);
 
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest httpRequest = HttpRequest.newBuilder()
                 .uri(URI.create("https://sh.dataspace.copernicus.eu/api/v1/process"))
                 .headers("Authorization", "Bearer " + sentinelAuth.getAccessToken(), "Content-Type", "application/json", "Accept", "image/tiff")
                 .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
-//                .POST(HttpRequest.BodyPublishers.ofString(JsonRequestPayloadSampleData.JSON_BODY_SENTINEL_HUB))
                 .build();
 
         HttpResponse<InputStream> response = null;
         try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
             return response.body();
         } catch (IOException | InterruptedException e) {
             throw new ServerErrorException("Request for Sentinel Processing API Data failed", Response.Status.BAD_GATEWAY);
         }
     }
 
-    private JSONObject getRequestPayload(double[] boundingBox, String dateFrom, String dateTo, int cloudCoveragePercent) {
+    private JSONObject getRequestPayload(SentinelRequest request) {
         JSONObject root = new JSONObject();
         JSONObject input = new JSONObject();
         JSONObject bounds = new JSONObject();
         JSONArray bbox = new JSONArray();
-        Arrays.stream(boundingBox).forEach(bbox::put);
+        Arrays.stream(request.getExtent()).forEach(bbox::put);
         bounds.put("bbox", bbox);
         input.put("bounds", bounds);
 
@@ -55,10 +53,10 @@ public class SentinelProcessApiClient {
         JSONObject dataObject = new JSONObject();
         JSONObject dataFilter = new JSONObject();
         JSONObject timeRange = new JSONObject();
-        timeRange.put("from", dateFrom);
-        timeRange.put("to", dateTo);
+        timeRange.put("from", request.getDateFrom() + "T00:00:00Z");
+        timeRange.put("to", request.getDateTo() + "T00:00:00Z");
         dataFilter.put("timeRange", timeRange);
-        dataFilter.put("maxCloudCoverage", cloudCoveragePercent);
+        dataFilter.put("maxCloudCoverage", request.getCloudCoverage());
         dataObject.put("dataFilter", dataFilter);
         dataObject.put("type", "sentinel-2-l2a");
         data.put(dataObject);

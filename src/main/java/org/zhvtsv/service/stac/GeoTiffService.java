@@ -6,7 +6,6 @@ import it.geosolutions.imageioimpl.plugins.cog.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.gce.geotiff.GeoTiffReader;
-import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.jboss.logging.Logger;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -15,7 +14,6 @@ import org.opencv.imgproc.Imgproc;
 import org.zhvtsv.utils.PathUtils;
 
 import java.awt.image.DataBufferByte;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 @ApplicationScoped
@@ -48,8 +46,7 @@ public class GeoTiffService {
             GridCoverage2D cropped = cropImageService.cropGeoTiff(coverage, extent);
             LOG.info("GeoTiff cropped");
 
-            byte[] imageByteArray = coverageToBinary(cropped);
-            Mat image = convertToMat(cropped, imageByteArray);
+            Mat image = convertToMat(cropped);
             Imgcodecs.imwrite(PathUtils.getPathForImageInResources("new.tif"), image);
 
             reader.dispose();
@@ -60,36 +57,7 @@ public class GeoTiffService {
         }
     }
 
-    private byte[] coverageToBinary(GridCoverage2D coverage2D) {
-        long startTime = System.currentTimeMillis();
-        LOG.info("Start converting to binary");
-
-        var stream = new ByteArrayOutputStream();
-        GeoTiffWriter writer = null;
-        try {
-            writer = new GeoTiffWriter(stream);
-            writer.write(coverage2D, null);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not export geotiff to blob", e);
-        } finally {
-            if (writer != null) {
-                writer.dispose();
-            }
-        }
-
-        LOG.info("Converted");
-        // Record end time
-        long endTime = System.currentTimeMillis();
-
-        // Calculate and print the elapsed time
-        long elapsedTime = endTime - startTime;
-        LOG.info("Elapsed Time: " + elapsedTime / 1000.0 + " seconds");
-
-        return stream.toByteArray();
-    }
-
-    private Mat convertToMat(GridCoverage2D coverage, byte[] data) {
-
+    private Mat convertToMat(GridCoverage2D coverage) {
         int numBands = coverage.getNumSampleDimensions();
         byte[] imageBytes = ((DataBufferByte) coverage.getRenderedImage().getData().getDataBuffer()).getData();
 

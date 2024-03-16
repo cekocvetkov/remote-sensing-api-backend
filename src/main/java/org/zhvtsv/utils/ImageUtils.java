@@ -8,6 +8,9 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -39,6 +42,23 @@ public class ImageUtils {
         }
         MatOfByte matOfByte = new MatOfByte(imageBytes);
         return Imgcodecs.imdecode(matOfByte, Imgcodecs.IMREAD_UNCHANGED);
+    }
+
+    public static BufferedImage mat2BufferedImage(Mat mat) {
+        //Encoding the image
+        MatOfByte matOfByte = new MatOfByte();
+        Imgcodecs.imencode(".png", mat, matOfByte);
+        //Storing the encoded Mat in a byte array
+        byte[] byteArray = matOfByte.toArray();
+        //Preparing the Buffered Image
+        InputStream in = new ByteArrayInputStream(byteArray);
+        BufferedImage bufImage = null;
+        try {
+            bufImage = ImageIO.read(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return bufImage;
     }
 
     public static Mat extractAndDrawBoxesFromInference(Mat mat2D, Mat resizedImage, List<String> classes) {

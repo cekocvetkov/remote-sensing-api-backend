@@ -11,7 +11,6 @@ public class STACObjectMapper {
     public static List<STACItemPreview> getStacItemsPreview(List<String> jsonBodyStrings) {
         List<STACItemPreview> stacItemPreviewList = new ArrayList<>();
 
-
         for(String jsonBodyString: jsonBodyStrings) {
             try {
                 JSONObject json = new JSONObject(jsonBodyString);

@@ -10,8 +10,6 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.zhvtsv.models.ExtentRequest;
 import org.zhvtsv.models.MultipartBody;
 import org.zhvtsv.service.ObjectDetection;
@@ -21,15 +19,13 @@ import org.zhvtsv.service.stac.GeoTiffService;
 import org.zhvtsv.service.stac.STACClient;
 import org.zhvtsv.service.stac.dto.STACItemPreview;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.zhvtsv.utils.ImageUtils.readImageFromInputStream;
+import static org.zhvtsv.utils.ImageUtils.mat2BufferedImage;
 
 @Path("/api/v1/remote-sensing/stac")
 public class RemoteSensingResource {
@@ -45,17 +41,12 @@ public class RemoteSensingResource {
     @Inject
     TreeDetectionDeepforest treeDetectionDeepforest;
 
-    private static String getBoundingBoxString(double[] extent) {
-        String array = Arrays.toString(extent);
-        return array.substring(1, array.length() - 2).replaceAll("\\s+", "");
-    }
-
     @POST
     @Path("/items")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getItems(ExtentRequest extentRequest) {
         LOG.info("Get items request for extent " + Arrays.toString(extentRequest.getExtent()));
-        List<STACItemPreview> stacItemPreviewList = this.stacClient.getStacItems(getBoundingBoxString(extentRequest.getExtent()));
+        List<STACItemPreview> stacItemPreviewList = this.stacClient.getStacItems(extentRequest);
         LOG.info("Found " + stacItemPreviewList.size() + " items.");
         return Response.ok(stacItemPreviewList).build();
     }
@@ -76,9 +67,9 @@ public class RemoteSensingResource {
         if (model.endsWith("object-detection")) {
             res = yolovObjectDetection.detectObjectOnImage(image, model);
         } else if (model.endsWith("tree-detection")) {
-            res = treeDetection.detectObjectOnImage(image, extentRequest.getModel());
+            res = treeDetection.detectObjectOnImage(image, model);
         } else {
-            return Response.ok(treeDetectionDeepforest.detectObjectOnImage(image, extentRequest.getModel())).build();
+            return Response.ok(treeDetectionDeepforest.detectObjectOnImage(image)).build();
         }
         BufferedImage response = mat2BufferedImage(res);
         return Response.ok(response).build();
@@ -91,34 +82,17 @@ public class RemoteSensingResource {
     public Response objectDetection(@MultipartForm MultipartBody data) {
         LOG.info("Bing detection with model " + data.model);
         String model = data.model;
+        InputStream file = data.file;
         Mat res = new Mat();
         if (model.endsWith("tree-detection")) {
-            res = treeDetection.detectObjectOnImage(readImageFromInputStream(data.file), data.model);
+            res = treeDetection.detectObjectOnImage(readImageFromInputStream(file), model);
         } else if (model.endsWith("object-detection")) {
-            res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(data.file), data.model);
+            res = yolovObjectDetection.detectObjectOnImage(readImageFromInputStream(file), model);
         } else {
-            return Response.ok(treeDetectionDeepforest.detectObjectOnImage(res, model)).build();
-
+            return Response.ok(treeDetectionDeepforest.detectObjectOnImage(res)).build();
         }
         BufferedImage image = mat2BufferedImage(res);
-
         return Response.ok(image).build();
     }
 
-    public BufferedImage mat2BufferedImage(Mat mat) {
-        //Encoding the image
-        MatOfByte matOfByte = new MatOfByte();
-        Imgcodecs.imencode(".png", mat, matOfByte);
-        //Storing the encoded Mat in a byte array
-        byte[] byteArray = matOfByte.toArray();
-        //Preparing the Buffered Image
-        InputStream in = new ByteArrayInputStream(byteArray);
-        BufferedImage bufImage = null;
-        try {
-            bufImage = ImageIO.read(in);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return bufImage;
-    }
 }
